@@ -24,6 +24,21 @@ A lightweight and efficient tool to automate the process of uploading, analyzing
 
 ---
 
+## 📂 Folder Structure
+Invoice_Reimbursement_System/
+├── data/
+├── venv/
+├── .env
+├── .gitignore
+├── main.py
+├── invoice_jupyter_analysis.ipynb
+├── invoice_analysis.py
+├── vectordb.py
+├── test_api.py
+├── requirements.txt
+└── README.md
+
+
 ## ⚙️ Setup Instructions
 
 ```bash
@@ -78,5 +93,4 @@ Book-cab-06.pdf         | CAB      | Status: Partially Reimbursed | Reason: Cab 
 Book-cab-09.pdf         | CAB      | Status: Fully Reimbursed     | Reason: Cab fare ≈ ₹150 within ₹150 daily limit.
 
 Invoice analysis complete.
-
 
