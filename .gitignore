@@ -1,0 +1,23 @@
+# Ignore API
+.env
+
+# Ignore virtual environment
+venv/
+
+# Ignore __pycache__ folders
+__pycache__/
+
+# Ignore temporary files
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.sqlite3
+
+# Ignore IDE/editor folders
+.vscode/
+.idea/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db

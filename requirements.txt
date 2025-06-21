@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+pdfplumber
+pdf2image
+pytesseract
+pillow
+python-multipart
+openai
+python-dotenv
+chromadb==0.4.24
+sentence-transformers==2.7.0
+onnxruntime
+
