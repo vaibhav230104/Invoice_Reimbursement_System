@@ -1,4 +1,4 @@
-print(">>> START main.py")
+print(">>> start main.py")
 import os, zipfile, tempfile, time, asyncio
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.responses import JSONResponse
