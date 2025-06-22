@@ -1,4 +1,4 @@
-print(">>> START vectordb.py")
+print(">>> start vectordb.py")
 from chromadb import Client
 from sentence_transformers import SentenceTransformer
 
