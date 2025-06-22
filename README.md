@@ -42,7 +42,7 @@ pip install -r requirements.txt
 ```
 ---
 
-### 1. Install OCR Tools
+### 2. Install OCR Tools
 
 # Tesseract OCR Setup
 
