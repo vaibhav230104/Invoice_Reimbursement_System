@@ -1,4 +1,4 @@
-print(">>> START invoice_analysis.py")
+print(">>> start invoice_analysis.py")
 import os, re
 import pdfplumber, pytesseract
 from datetime import date 
