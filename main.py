@@ -1,113 +1,121 @@
-# main.py
 print(">>> START main.py")
-
+import os, zipfile, tempfile, time, asyncio
 from fastapi import FastAPI, File, UploadFile, Form
-print(">>> fastapi imports done")
 from fastapi.responses import JSONResponse
-print(">>> JSONResponse import done")
-import zipfile, os, tempfile, re         
-print(">>> os/zipfile/tempfile/re imports done")
-
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List
 
 from invoice_analysis import (
     extract_text_from_pdf,
     extract_text_from_pdf_ocr,
     rule_based_check,
     truncate,
-    generate_prompt,
-    call_groq,
-    add_to_vector_store,
-    analyze_single_invoice,                 
 )
 
-print(">>> invoice_analysis import done")
-# ---------- helper functions ----------
-def determine_category(filename: str) -> str:
-    name = filename.lower()
-    if "meal" in name:
-        return "meal"
-    if "cab" in name or "ride" in name:
-        return "cab"
+# ---------- FastAPI app ----------
+app = FastAPI(title="Invoice API (Stable)")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ---------- Pydantic models ----------
+class InvoiceResult(BaseModel):
+    filename: str
+    employee: str
+    category: str
+    status: str
+    reason: str
+
+class AnalyzeResponse(BaseModel):
+    success: bool
+    results: List[InvoiceResult]
+
+def determine_category(name: str) -> str:
+    n = name.lower()
+    if "meal" in n: return "meal"
+    if "cab"  in n or "ride" in n: return "cab"
     return "travel"
 
-def extract_status(response: str) -> str:
-    for line in response.splitlines():
-        if "status" in line.lower():
-            return line.split(":", 1)[1].strip()
-    return "UNKNOWN"
-
-def extract_reason(response: str) -> str:
-    for line in response.splitlines():
-        if "reason" in line.lower():
-            return line.split(":", 1)[1].strip()
-    return "No reason found"
-
-app = FastAPI()
-
-# -------------------------------------------------
-# POST /analyze‑invoices
-# -------------------------------------------------
-@app.post("/analyze-invoices/")
+# ---------- Endpoint ----------
+@app.post("/analyze-invoices/", response_model=AnalyzeResponse)
 async def analyze_invoices(
     employee_name: str = Form(...),
-    policy_pdf:  UploadFile = File(...),
+    policy_pdf: UploadFile = File(...),
     invoices_zip: UploadFile = File(...),
 ):
+    print(">>> Endpoint triggered", flush=True)
+    ts = time.time()
+
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
-
-            # ---------- save policy ----------
-            policy_path = os.path.join(tmpdir, "policy.pdf")
-            with open(policy_path, "wb") as f:
+            # Save policy
+            pol_path = os.path.join(tmpdir, "policy.pdf")
+            with open(pol_path, "wb") as f:
                 f.write(await policy_pdf.read())
-            print(">>> 1. Reading policy")
-            policy_text  = extract_text_from_pdf(policy_path)
-            
-            print(">>> 2. Truncating policy")
-            policy_short = truncate(policy_text, max_words=100)
+            print(">>> policy saved")
 
-            # ---------- save & unzip invoices ----------
+            policy_text = await asyncio.to_thread(extract_text_from_pdf, pol_path)
+            policy_short = truncate(policy_text, 100)
+            print(">>> policy extracted & truncated")
+
+            # Save ZIP
             zip_path = os.path.join(tmpdir, "invoices.zip")
             with open(zip_path, "wb") as f:
                 f.write(await invoices_zip.read())
+            print(">>> invoices ZIP saved")
 
-            invoice_dir = os.path.join(tmpdir, "invoices")
-            os.makedirs(invoice_dir, exist_ok=True)
-            with zipfile.ZipFile(zip_path, "r") as zf:
-                zf.extractall(invoice_dir)
+            # Extract ZIP
+            inv_dir = os.path.join(tmpdir, "invoices")
+            os.makedirs(inv_dir, exist_ok=True)
+            with zipfile.ZipFile(zip_path) as zf:
+                zf.extractall(inv_dir)
+            print(">>> invoices extracted")
 
-            # ---------- analyse every PDF ----------
+            # Iterate PDFs
             results = []
-            for file in os.listdir(invoice_dir):
-                if not file.lower().endswith(".pdf"):
-                    continue
+            for root, _, files in os.walk(inv_dir):
+                for fname in files:
+                    if not fname.lower().endswith(".pdf"):
+                        print(">>> skipped non-pdf:", fname)
+                        continue
 
-                pdf_path = os.path.join(invoice_dir, file)
-                print(f">>> Analyzing with analyze_single_invoice(): {file}")
-                result = analyze_single_invoice(policy_short, pdf_path, determine_category(file))
+                    pdf_path = os.path.join(root, fname)
+                    print(">>> analyzing", fname)
 
-                # Push to vector store
-                add_to_vector_store(
-                    doc_id=f"{employee_name}_{file}",
-                    full_text=result["filename"],  # NOTE: use invoice text if needed
-                    status=result["status"],
-                    reason=result["reason"],
-                    meta={
-                        "employee": employee_name,
-                        "filename": file,
-                        "category": result["category"],
-                        "status": result["status"],
-                        "date": "",  # (you can re-add date extraction if needed)
-                    },
-                )
+                    try:
+                        inv_text = await asyncio.to_thread(extract_text_from_pdf_ocr, pdf_path)
+                        if not inv_text.strip():
+                            print(">>> empty OCR output, skipped")
+                            continue
 
-                result["employee"] = employee_name
-                results.append(result)
+                        category = determine_category(fname)
+                        status, reason = rule_based_check(inv_text, category)
+                        if status is None:
+                            status = "UNKNOWN"
+                            reason = "Rule-based check failed (LLM disabled)"
 
+                        results.append(InvoiceResult(
+                            filename=fname,
+                            employee=employee_name,
+                            category=category,
+                            status=status,
+                            reason=reason
+                        ))
+                        print(f">>> done: {fname} → {status}")
+                    except Exception as file_err:
+                        print(f">>> Error processing {fname}: {file_err}")
 
-        return JSONResponse(content={"success": True, "results": results})
+            print(">>> Completed in", round(time.time() - ts, 2), "s")
+            return AnalyzeResponse(success=True, results=results)
 
     except Exception as e:
-        return JSONResponse(content={"success": False, "error": str(e)})
-
-
+        print(">>> Global ERROR:", e)
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": str(e)},
+        )

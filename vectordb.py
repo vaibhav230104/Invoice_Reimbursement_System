@@ -1,22 +1,22 @@
 print(">>> START vectordb.py")
-
 from chromadb import Client
-print(">>> chromadb import done")
-
-from chromadb.config import Settings
-print(">>> chromadb client settings done")
-
 from sentence_transformers import SentenceTransformer
-print(">>> sentence_transformers import done")
 
 client = Client()
-print(">>> chromadb client initialized")
+print(">>> Chroma client initialised")
 
-embedder = SentenceTransformer("all-MiniLM-L6-v2")
-print(">>> embedder model loaded")
+try:
+    embedder = SentenceTransformer("all-MiniLM-L6-v2")
+    print(">>> Sentence-Transformer model loaded")
+except Exception as e:
+    print(">>> WARNING: embedding model failed to load —", e)
+    embedder = None
 
-collection = client.get_or_create_collection(
-    name="invoices",
-    embedding_function=None
-)
-print(">>> collection initialized")
+try:
+    collection = client.get_or_create_collection(
+        name="invoices", embedding_function=None
+    )
+    print(">>> Chroma collection ready")
+except Exception as e:
+    print(">>> WARNING: could not create collection —", e)
+    collection = None
