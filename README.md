@@ -33,7 +33,7 @@ pip install -r requirements.txt
 
 ### 2. Install OCR Tools
 
-# Tesseract OCR Setup
+### Tesseract OCR Setup
 
 
 - [![Tesseract OCR](https://img.shields.io/badge/OCR-Tesseract-blue)](https://github.com/tesseract-ocr/tesseract)
