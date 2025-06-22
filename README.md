@@ -46,42 +46,39 @@ pip install -r requirements.txt
 
 # Tesseract OCR Setup
 
-```bash
-[![Tesseract OCR](https://img.shields.io/badge/OCR-Tesseract-blue)](https://github.com/tesseract-ocr/tesseract)
-[![Poppler](https://img.shields.io/badge/PDF-Poppler-brightgreen)](https://github.com/oschwartz10612/poppler-windows)
-```
-Tesseract is a powerful OCR engine used to extract text from scanned PDFs.
 
+- [![Tesseract OCR](https://img.shields.io/badge/OCR-Tesseract-blue)](https://github.com/tesseract-ocr/tesseract)
+- [![Poppler](https://img.shields.io/badge/PDF-Poppler-brightgreen)](https://github.com/oschwartz10612/poppler-windows)
+- Tesseract is a powerful OCR engine used to extract text from scanned PDFs.
+  
 ---
 
 ### Installation
 
 #### Tesseract OCR
 
-```bash
-1. Download: [Tesseract OCR Installer](https://github.com/UB-Mannheim/tesseract/wiki)
-2. Install to: `C:\Program Files\Tesseract-OCR\`
-```
+
+- Download: [Tesseract OCR Installer](https://github.com/UB-Mannheim/tesseract/wiki)
+- Install to: `C:\Program Files\Tesseract-OCR\`
+
 #### Poppler for PDF Conversion
 
-```bash
-1. Download: [Poppler for Windows](https://github.com/oschwartz10612/poppler-windows/releases/)
-2. Extract to any location, e.g., `C:\tools\poppler-24.08.0`
-```
+
+- Download: [Poppler for Windows](https://github.com/oschwartz10612/poppler-windows/releases/)
+- Extract to any location, e.g., `C:\tools\poppler-24.08.0`
+
 ---
 
 ### Configure Paths in Code
 
-Paste this into `invoice_analysis.py`:
+- Paste this into `invoice_analysis.py`:
+- pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+- POPPLER_PATH = r"C:\\tools\\poppler-24.08.0\\Library\\bin"
 
-```python
-pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
-POPPLER_PATH = r"C:\\tools\\poppler-24.08.0\\Library\\bin"
-```
 ---
 ### 3. Run the FastAPI Server
 
-By default, the app will be available at Swagger UI:
+- By default, the app will be available at Swagger UI:
 ```bash
 http://127.0.0.1:8000/docs 
 ```
@@ -118,7 +115,7 @@ Stored metadata includes:
 ```
 ---
 
-##  Project Structure
+##  Results
 
 ```bash
 {
