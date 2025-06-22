@@ -14,17 +14,6 @@ A lightweight and efficient tool to automate the process of uploading, analyzing
 
 ---
 
-## 🚀 Tech Stack
-
-- **Frontend**: HTML/CSS (or React, if used)
-- **Backend**: Python (Flask / Django)
-- **Database**: SQLite / PostgreSQL / MySQL
-- **OCR**: Tesseract / EasyOCR (for image-to-text)
-- **Deployment**: (mention if hosted on Heroku, Render, etc.)
-
----
-
-
 ## ⚙️ Setup Instructions
 
 ```bash
